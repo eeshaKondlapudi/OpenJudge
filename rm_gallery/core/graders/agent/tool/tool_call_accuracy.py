@@ -177,8 +177,7 @@ class ToolCallAccuracyGrader(LLMGrader):
         >>> tool_calls = [
         ...     {
         ...         "name": "get_weather",
-        ...         "arguments": {"location": "New York"},
-        ...         "result": {"temperature": 25, "condition": "sunny"}
+        ...         "arguments": {"location": "New York"}
         ...     }
         ... ]
         >>> result = asyncio.run(grader.aevaluate(
@@ -288,8 +287,7 @@ class ToolCallAccuracyGrader(LLMGrader):
             >>> tool_calls = [
             ...     {
             ...         "name": "get_weather",
-            ...         "arguments": {"location": "New York"},
-            ...         "result": {"temperature": 25, "condition": "sunny"}
+            ...         "arguments": {"location": "New York"}
             ...     }
             ... ]
             >>> result = await grader.aevaluate(

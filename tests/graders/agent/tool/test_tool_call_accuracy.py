@@ -89,7 +89,6 @@ class TestToolCallAccuracyGraderUnit:
                     {
                         "name": "get_weather",
                         "arguments": {"location": "London"},
-                        "result": {"temperature": 18, "condition": "cloudy"},
                     },
                 ],
             )
@@ -132,7 +131,6 @@ class TestToolCallAccuracyGraderUnit:
                     {
                         "name": "calculate",
                         "arguments": {"expression": "2+2"},
-                        "result": {"value": 4},
                     },
                 ],
             )

@@ -60,13 +60,14 @@ INPUT
 
 TOOL_DEFINITIONS: {tool_definitions}
 TOOL_CALLS: {tool_calls}
-
+TOOL_RESPONSES: {tool_responses}
 TOOL_CALLS is a list of tool calls that were produced by the AI agent. It includes calls \
 together with the result of every tool call.
 TOOL_DEFINITIONS is a list of definitions for the tools that were called. This definition \
 can contain a description of functionality provided by the tool, the parameters that the \
 tool accepts and the expected return of the tool. This definition can contribute to the \
 assessment of whether a tool call succeeded or failed.
+TOOL_RESPONSES is a list of responses to the tool calls. Each response should be a string.
 
 EXPECTED OUTPUT
 ===============
@@ -113,9 +114,11 @@ TOOL_CALL_SUCCESS_PROMPT_ZH = """你是一位具有强大软件开发背景的�
 
 工具定义：{tool_definitions}
 工具调用：{tool_calls}
+工具响应：{tool_responses}
 
 工具调用是 AI 智能体生成的工具调用列表。它包括调用以及每个工具调用的结果。
 工具定义是被调用工具的定义列表。此定义可以包含工具提供的功能描述、工具接受的参数以及工具的预期返回。此定义可以帮助评估工具调用是否成功或失败。
+工具响应是每个工具调用的响应。每个响应应该是一个字符串。
 
 预期输出
 ===============
@@ -153,12 +156,12 @@ class ToolCallSuccessGrader(LLMGrader):
 
     Evaluates whether tool calls done by an AI agent includes failures or not.
 
-    This evaluator focuses solely on tool call results and tool definitions, disregarding user's query to
-    the agent, conversation history and agent's final response. Although tool definitions is optional,
+    This evaluator focuses solely on tool calls, tool responses, and tool definitions, disregarding user's
+    query to the agent, conversation history and agent's final response. Although tool definitions is optional,
     providing them can help the evaluator better understand the context of the tool calls made by the
-    agent. Please note that this evaluator validates tool calls for potential technical failures like
+    agent. Please note that this evaluator validates tool responses for potential technical failures like
     errors, exceptions, timeouts and empty results (only in cases where empty results could indicate a
-    failure). It does not assess the correctness or the tool result itself, like mathematical errors and
+    failure). It does not assess the correctness of the tool response itself, like mathematical errors and
     unrealistic field values like name="668656".
 
     Scoring is binary:
@@ -197,13 +200,16 @@ class ToolCallSuccessGrader(LLMGrader):
         >>> tool_calls = [
         ...     {
         ...         "name": "get_weather",
-        ...         "arguments": {"location": "New York"},
-        ...         "result": {"temperature": 25, "condition": "sunny"}
+        ...         "arguments": {"location": "New York"}
         ...     }
+        ... ]
+        >>> tool_responses = [
+        ...     "The weather in New York is sunny and 25 degrees Celsius."
         ... ]
         >>> result = asyncio.run(grader.aevaluate(
         ...     tool_definitions=tool_definitions,
-        ...     tool_calls=tool_calls
+        ...     tool_calls=tool_calls,
+        ...     tool_responses=tool_responses
         ... ))
         >>> print(result.score)
         1.0
@@ -266,6 +272,7 @@ class ToolCallSuccessGrader(LLMGrader):
         self,
         tool_definitions: Union[Dict[str, Any], List[Dict[str, Any]]],
         tool_calls: Union[Dict[str, Any], List[Dict[str, Any]]],
+        tool_responses: Union[str, List[str]],
     ) -> GraderScore:
         """
         Evaluate tool call success
@@ -277,8 +284,9 @@ class ToolCallSuccessGrader(LLMGrader):
         Args:
             tool_definitions: List of tool definitions whose calls are being evaluated.
                              Each definition typically includes name, description, and parameters.
-            tool_calls: List of tool calls with results to evaluate. Each call should include
-                       the tool name, arguments, and result.
+            tool_calls: List of tool calls to evaluate. Each call should include
+                       the tool name and arguments.
+            tool_responses: List of tool responses to evaluate. Each response should be a string.
 
         Returns:
             GraderScore: Score of 1.0 for success or 0.0 for failure
@@ -286,11 +294,15 @@ class ToolCallSuccessGrader(LLMGrader):
         Example:
             >>> tool_defs = [{"name": "calculator", "description": "Performs calculations"}]
             >>> tool_calls = [
-            ...     {"name": "calculator", "arguments": {"expression": "2+2"}, "result": {"value": 4}}
+            ...     {"name": "calculator", "arguments": {"expression": "2+2"}}
+            ... ]
+            >>> tool_responses = [
+            ...     "The result of 2+2 is 4."
             ... ]
             >>> result = await grader.aevaluate(
             ...     tool_definitions=tool_defs,
-            ...     tool_calls=tool_calls
+            ...     tool_calls=tool_calls,
+            ...     tool_responses=tool_responses
             ... )
         """
         # Ensure tool_calls and tool_definitions are lists
@@ -298,12 +310,15 @@ class ToolCallSuccessGrader(LLMGrader):
             tool_calls = [tool_calls]
         if not isinstance(tool_definitions, list):
             tool_definitions = [tool_definitions] if tool_definitions else []
+        if not isinstance(tool_responses, list):
+            tool_responses = [tool_responses]
 
         try:
             # Call parent evaluate method with the structured data
             result = await super().aevaluate(
                 tool_calls=json.dumps(tool_calls, indent=2),
                 tool_definitions=json.dumps(tool_definitions, indent=2),
+                tool_responses=json.dumps(tool_responses, indent=2),
             )
             score = result.score
             reason = result.reason

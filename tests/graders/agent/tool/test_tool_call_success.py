@@ -94,8 +94,10 @@ class TestToolCallSuccessGraderUnit:
                     {
                         "name": "get_weather",
                         "arguments": {"location": "New York"},
-                        "result": {"temperature": 25, "condition": "sunny"},
                     },
+                ],
+                tool_responses=[
+                    "Temperature: 25°C, Condition: sunny",
                 ],
             )
 
@@ -139,8 +141,10 @@ class TestToolCallSuccessGraderUnit:
                     {
                         "name": "get_weather",
                         "arguments": {"location": "New York"},
-                        "result": {"status": "error", "error": "ConnectionTimeout"},
                     },
+                ],
+                tool_responses=[
+                    "Error: ConnectionTimeout",
                 ],
             )
 
@@ -167,7 +171,8 @@ class TestToolCallSuccessGraderUnit:
             # Execute test
             result = await grader.aevaluate(
                 tool_definitions=[{"name": "test", "description": "test"}],
-                tool_calls=[{"name": "test", "arguments": {}, "result": {}}],
+                tool_calls=[{"name": "test", "arguments": {}}],
+                tool_responses=[""],
             )
 
             # Assertions
@@ -206,16 +211,10 @@ class TestToolCallSuccessGraderQuality:
                     {
                         "name": "Get_All_Sessions",
                         "arguments": {},
-                        "result": {
-                            "data": [
-                                {
-                                    "session_name": "Hatha yoga",
-                                    "session_date": "2023-06-01",
-                                    "session_instructor": "Emily",
-                                },
-                            ],
-                        },
                     },
+                ],
+                "tool_responses": [
+                    "Session list retrieved successfully: Hatha yoga on 2023-06-01 with instructor Emily",
                 ],
                 "human_score": 1,  # Success
             },
@@ -232,12 +231,10 @@ class TestToolCallSuccessGraderQuality:
                     {
                         "name": "Get_All_Sessions",
                         "arguments": {},
-                        "result": {
-                            "status": "error",
-                            "error": "ResourceNotFound",
-                            "message": "The requested resource was not found",
-                        },
                     },
+                ],
+                "tool_responses": [
+                    "Error: ResourceNotFound - The requested resource was not found",
                 ],
                 "human_score": 0,  # Failure
             },
@@ -254,14 +251,10 @@ class TestToolCallSuccessGraderQuality:
                     {
                         "name": "get_device_details",
                         "arguments": {"device_name": "Blood Pressure Monitor"},
-                        "result": {
-                            "data": {
-                                "name": "Blood Pressure Monitor",
-                                "type": "Blood Pressure Monitor",
-                                "manufacturer": "Omron",
-                            },
-                        },
                     },
+                ],
+                "tool_responses": [
+                    "Device details: Blood Pressure Monitor, Type: Blood Pressure Monitor, Manufacturer: Omron",
                 ],
                 "human_score": 1,
             },
@@ -278,8 +271,10 @@ class TestToolCallSuccessGraderQuality:
                     {
                         "name": "get_device_details",
                         "arguments": {"device_name": "Blood Pressure Monitor"},
-                        "result": {"status": "error", "error": "InvalidParameters"},
                     },
+                ],
+                "tool_responses": [
+                    "Error: InvalidParameters",
                 ],
                 "human_score": 0,
             },
@@ -299,8 +294,10 @@ class TestToolCallSuccessGraderQuality:
                     {
                         "name": "schedule_appointment",
                         "arguments": {"patient_id": "user", "doctor_id": "Dr. Li"},
-                        "result": {"appointment_id": "121232", "appointment_time": "2039-03-12T19:00:00+08:00"},
                     },
+                ],
+                "tool_responses": [
+                    "Appointment scheduled successfully with ID: 121232 at 2039-03-12T19:00:00+08:00",
                 ],
                 "human_score": 1,
             },
@@ -320,8 +317,10 @@ class TestToolCallSuccessGraderQuality:
                     {
                         "name": "schedule_appointment",
                         "arguments": {"patient_id": "user", "doctor_id": "Dr. Li"},
-                        "result": {"status": "error", "error": "PermissionDenied"},
                     },
+                ],
+                "tool_responses": [
+                    "Error: PermissionDenied",
                 ],
                 "human_score": 0,
             },
@@ -351,6 +350,7 @@ class TestToolCallSuccessGraderQuality:
                 mapper={
                     "tool_definitions": "tool_definitions",
                     "tool_calls": "tool_calls",
+                    "tool_responses": "tool_responses",
                 },
             ),
         }
@@ -387,6 +387,7 @@ class TestToolCallSuccessGraderQuality:
                 mapper={
                     "tool_definitions": "tool_definitions",
                     "tool_calls": "tool_calls",
+                    "tool_responses": "tool_responses",
                 },
             ),
             "tool_call_success_run2": GraderConfig(
@@ -394,6 +395,7 @@ class TestToolCallSuccessGraderQuality:
                 mapper={
                     "tool_definitions": "tool_definitions",
                     "tool_calls": "tool_calls",
+                    "tool_responses": "tool_responses",
                 },
             ),
         }
@@ -436,15 +438,19 @@ class TestToolCallSuccessGraderAdversarial:
                     {
                         "name": "get_provider_info",
                         "arguments": {"provider_id": 11223344},
-                        "result": {"name": "Dr. Li's Clinic", "specialty": "Cardiology", "address": "123 Main St"},
                     },
+                ],
+                "successful_tool_responses": [
+                    "Provider info: Dr. Li's Clinic, Specialty: Cardiology, Address: 123 Main St",
                 ],
                 "failed_tool_calls": [
                     {
                         "name": "get_provider_info",
                         "arguments": {"provider_id": 11223344},
-                        "result": {"status": "success", "data": [], "message": "No results found matching your query"},
                     },
+                ],
+                "failed_tool_responses": [
+                    "Status: success, but no results found matching your query",
                 ],
                 "successful_label": 1,
                 "failed_label": 0,
@@ -455,15 +461,19 @@ class TestToolCallSuccessGraderAdversarial:
                     {
                         "name": "get_nearby_hospital",
                         "arguments": {"location": "四川北路", "distance": 2000},
-                        "result": [{"name": "同仁医院", "location": "长宁区黄桥路170号"}],
                     },
+                ],
+                "successful_tool_responses": [
+                    "Found hospital: 同仁医院 at 长宁区黄桥路170号",
                 ],
                 "failed_tool_calls": [
                     {
                         "name": "get_nearby_hospital",
                         "arguments": {"location": "四川北路", "distance": 2000},
-                        "result": {"status": "error", "error": "ServiceUnavailable"},
                     },
+                ],
+                "failed_tool_responses": [
+                    "Error: ServiceUnavailable",
                 ],
                 "successful_label": 1,
                 "failed_label": 0,
@@ -474,15 +484,19 @@ class TestToolCallSuccessGraderAdversarial:
                     {
                         "name": "daily_journal",
                         "arguments": {"date": "2039-03-09", "mood_level": 6, "stress_level": 8},
-                        "result": {"message": "Journal entry successfully logged."},
                     },
+                ],
+                "successful_tool_responses": [
+                    "Journal entry successfully logged.",
                 ],
                 "failed_tool_calls": [
                     {
                         "name": "daily_journal",
                         "arguments": {"date": "2039-03-09", "mood_level": 6, "stress_level": 8},
-                        "result": {"status": "error", "error": "ResourceNotFound"},
                     },
+                ],
+                "failed_tool_responses": [
+                    "Error: ResourceNotFound",
                 ],
                 "successful_label": 1,
                 "failed_label": 0,
@@ -513,6 +527,7 @@ class TestToolCallSuccessGraderAdversarial:
                 mapper={
                     "tool_definitions": "tool_definitions",
                     "tool_calls": "successful_tool_calls",
+                    "tool_responses": "successful_tool_responses",
                 },
             ),
             "tool_call_success_failed": GraderConfig(
@@ -520,6 +535,7 @@ class TestToolCallSuccessGraderAdversarial:
                 mapper={
                     "tool_definitions": "tool_definitions",
                     "tool_calls": "failed_tool_calls",
+                    "tool_responses": "failed_tool_responses",
                 },
             ),
         }

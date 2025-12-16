@@ -213,7 +213,7 @@ class ToolParameterCheckGrader(LLMGrader):
                   message dictionaries for conversation history.
             tool_definitions: List of tool definitions available to the agent.
                              Each definition includes name, description, and parameters.
-            tool_calls: List of tool calls made by the agent, including arguments and results.
+            tool_calls: List of tool calls made by the agent, including tool name and arguments.
             **kwargs: Additional arguments
 
         Returns:
