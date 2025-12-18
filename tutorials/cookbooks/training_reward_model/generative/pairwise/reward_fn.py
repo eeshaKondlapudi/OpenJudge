@@ -3,7 +3,9 @@
 import re
 from typing import Any, Dict, Optional
 
-from examples.train.generative.pairwise.template import PairwiseComparisonTemplate
+from tutorials.cookbooks.training_reward_model.generative.pairwise.template import (
+    PairwiseComparisonTemplate,
+)
 
 
 def extract_preference_from_response(

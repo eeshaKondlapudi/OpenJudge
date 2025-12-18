@@ -3,8 +3,10 @@
 import json
 from typing import Any, Dict, List
 
-from examples.train.base import BaseTrainDataset
-from examples.train.generative.pointwise.template import PointwiseTrainTemplate
+from tutorials.cookbooks.training_reward_model.base import BaseTrainDataset
+from tutorials.cookbooks.training_reward_model.generative.pointwise.template import (
+    PointwiseTrainTemplate,
+)
 
 
 class HelpfulnessPointwiseTrainDataset(BaseTrainDataset):

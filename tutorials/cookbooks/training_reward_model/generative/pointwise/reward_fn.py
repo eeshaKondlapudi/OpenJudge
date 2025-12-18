@@ -3,7 +3,9 @@
 import math
 from typing import Any, Dict, Optional
 
-from examples.train.generative.pointwise.template import PointwiseTrainTemplate
+from tutorials.cookbooks.training_reward_model.generative.pointwise.template import (
+    PointwiseTrainTemplate,
+)
 
 
 def calculate_helpfulness_reward(
