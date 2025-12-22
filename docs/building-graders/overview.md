@@ -45,10 +45,10 @@ grader = LLMGrader(
     model=model,
     template="""
     Evaluate the medical accuracy of this response:
-    
+
     Query: {query}
     Response: {response}
-    
+
     Return JSON: {{"score": <0.0-1.0>, "reason": "<explanation>"}}
     """
 )
@@ -64,7 +64,7 @@ async def compliance_checker(response: str) -> GraderScore:
     required_terms = ["disclaimer", "terms", "conditions"]
     found = sum(term in response.lower() for term in required_terms)
     score = found / len(required_terms)
-    
+
     return GraderScore(
         name="compliance_check",
         score=score,

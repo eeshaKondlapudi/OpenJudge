@@ -210,7 +210,7 @@ async def main():
 
     print(f"Score: {result.score}")   # 0.92 - excellent generation
     print(f"Reason: {result.reason}")
-    
+
     # Access detailed scores
     print(f"Semantic: {result.metadata['min_sc']}/10")
     print(f"Perceptual: {result.metadata['min_pq']}/10")

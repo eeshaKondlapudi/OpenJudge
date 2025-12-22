@@ -121,14 +121,14 @@ async def validate():
         "rewardbench2_test.parquet",
         max_samples=100  # Start small for testing
     )
-    
+
     # 2. Initialize grader
     model = OpenAIChatModel(
         model="qwen3-32b",
         api_key="your-api-key"
     )
     grader = RewardBench2Grader(model=model)
-    
+
     # 3. Run evaluation
     results = []
     for sample in data:
@@ -139,11 +139,11 @@ async def validate():
             chosen_indices=sample["chosen_indices"]
         )
         results.append(result)
-    
+
     # 4. Analyze results
     analyzer = RewardBench2Analyzer()
     report = analyzer.analyze(dataset=data, grader_results=results)
-    
+
     print(f"Overall Accuracy: {report.metadata['accuracy']:.2%}")
     for subset, metrics in report.metadata["subset_accuracy"].items():
         print(f"  {subset}: {metrics['accuracy']:.2%}")
@@ -368,7 +368,7 @@ Provide your reasoning, then output your rating (1-10) on the last line.
 def test_position_bias(grader, test_samples):
     """Check if grader favors certain positions."""
     position_counts = {"A": 0, "B": 0, "C": 0, "D": 0}
-    
+
     for sample in test_samples:
         result = await grader.aevaluate(
             query=sample["query"],
@@ -376,14 +376,14 @@ def test_position_bias(grader, test_samples):
             subset=sample["subset"],
             chosen_indices=sample["chosen_indices"]
         )
-        
+
         predicted = result.metadata.get("predicted_letter")
         position_counts[predicted] += 1
-    
+
     total = sum(position_counts.values())
     for pos, count in position_counts.items():
         print(f"Position {pos}: {count/total:.1%}")
-    
+
     # Expected: ~25% each if no bias
     # If one position > 35%, likely position bias exists
 ```
@@ -423,7 +423,7 @@ async def compare_graders():
         RewardBench2Grader(model=model_b),
         YourCustomGrader()
     ]
-    
+
     for grader in graders:
         # Run evaluation
         results = []
@@ -435,7 +435,7 @@ async def compare_graders():
                 chosen_indices=sample.get("chosen_indices")
             )
             results.append(result)
-        
+
         # Analyze results
         analyzer = RewardBench2Analyzer()
         report = analyzer.analyze(dataset=data, grader_results=results)

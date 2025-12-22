@@ -107,7 +107,7 @@ class TestRubricsBasedTrajectoryPerformanceUnit:
         ]
 
         mock_callback_response = AsyncMock()
-        mock_callback_response.metadata = {
+        mock_callback_response.parsed = {
             "dimension_evaluations": dimension_evaluations,
         }
 
@@ -117,7 +117,7 @@ class TestRubricsBasedTrajectoryPerformanceUnit:
 
         # Setup mock response
         mock_response = AsyncMock()
-        mock_response.metadata = callback_result
+        mock_response.parsed = callback_result
 
         mock_model.achat = AsyncMock(return_value=mock_response)
 
@@ -276,6 +276,10 @@ OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")
 RUN_QUALITY_TESTS = bool(OPENAI_API_KEY and OPENAI_BASE_URL)
 
 
+@pytest.mark.skipif(
+    not RUN_QUALITY_TESTS,
+    reason="Requires API keys and base URL to run quality tests",
+)
 @pytest.mark.quality
 class TestRubricsBasedTrajectoryPerformanceQuality:
     """Quality tests for RubricsBasedTrajectoryPerformance - testing evaluation quality"""

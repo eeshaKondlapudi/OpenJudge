@@ -12,17 +12,17 @@ using FinancialTrajectoryFaithfulGrader as an example:
 Example:
     Run all tests:
     ```bash
-    poetry run pytest tests/graders/agent/deep_research/test_financial_trajectory_faithful.py -v
+    pytest tests/graders/agent/deep_research/test_financial_trajectory_faithful.py -v
     ```
 
     Run only unit tests:
     ```bash
-    poetry run pytest tests/graders/agent/deep_research/test_financial_trajectory_faithful.py -m unit
+    pytest tests/graders/agent/deep_research/test_financial_trajectory_faithful.py -m unit
     ```
 
     Run quality tests (only if API keys are configured):
     ```bash
-    poetry run pytest tests/graders/agent/deep_research/test_financial_trajectory_faithful.py -m quality
+    pytest tests/graders/agent/deep_research/test_financial_trajectory_faithful.py -m quality
     ```
 """
 

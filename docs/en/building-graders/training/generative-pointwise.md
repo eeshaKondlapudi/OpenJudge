@@ -146,10 +146,10 @@ class HelpfulnessPointwiseTrainDataset(BaseTrainDataset):
         """Build evaluation prompt messages"""
         input_messages = example.get('input', [])
         output_data = example.get('output', [])
-        
+
         # Extract query
         query = input_messages[0]['content'] if input_messages else ""
-        
+
         # Extract response
         if isinstance(output_data, list) and len(output_data) > 0:
             response = output_data[0].get('content', '')
@@ -157,7 +157,7 @@ class HelpfulnessPointwiseTrainDataset(BaseTrainDataset):
             response = output_data.get('content', '')
         else:
             response = str(output_data)
-        
+
         # Build evaluation prompt
         prompt = f"""Evaluate the helpfulness of this response on a scale of 0-4.
 
@@ -171,29 +171,29 @@ Provide your evaluation in this format:
 Where X is a number from 0 (not helpful) to 4 (very helpful)."""
 
         return [{"role": "user", "content": prompt}]
-    
+
     def _apply_chat_template(self, messages: List[Dict[str, str]]) -> str:
         return self.tokenizer.apply_chat_template(
             messages,
             tokenize=False,
             add_generation_prompt=True
         )
-    
+
     def _extract_ground_truth(self, row_dict: Dict[str, Any]) -> Dict[str, int]:
         """Extract helpfulness score"""
         output_data = row_dict.get('output', [])
-        
+
         if isinstance(output_data, list) and len(output_data) > 0:
             label = output_data[0].get('label', {})
         elif isinstance(output_data, dict):
             label = output_data.get('label', {})
         else:
             label = {}
-        
+
         return {
             "helpfulness": label.get("helpfulness", 0)
         }
-    
+
     def _get_data_source(self, row_dict: Dict[str, Any]) -> str:
         return row_dict.get('data_source', 'unknown')
 ```
@@ -218,16 +218,16 @@ def calculate_helpfulness_reward(
     """
     if true_score is None:
         return 0.0
-    
+
     # Calculate absolute error
     abs_error = abs(predicted_score - true_score)
     max_possible_error = 4  # Score range 0-4
-    
+
     # Exponential decay: reward = exp(-k * error_ratio)
     k = 2.0  # Decay parameter
     error_ratio = abs_error / max_possible_error
     reward = math.exp(-k * error_ratio)
-    
+
     return float(reward)
 
 def compute_score(
@@ -242,11 +242,11 @@ def compute_score(
         # Parse predicted score from model output
         parsed_result = PointwiseTrainTemplate.parse(solution_str)
         predicted_helpfulness = parsed_result.score
-        
+
         # Validate range
         if not 0 <= predicted_helpfulness <= 4:
             predicted_helpfulness = 0
-        
+
         # Extract true score
         if isinstance(ground_truth, dict):
             true_helpfulness = ground_truth.get("helpfulness", 0)
@@ -254,15 +254,15 @@ def compute_score(
             true_helpfulness = int(ground_truth)
         else:
             true_helpfulness = 0
-        
+
         # Calculate reward
         reward = calculate_helpfulness_reward(
             predicted_helpfulness,
             true_helpfulness
         )
-        
+
         accuracy = 1 if predicted_helpfulness == true_helpfulness else 0
-        
+
         return {
             "score": reward,
             "predicted_helpfulness": predicted_helpfulness,
@@ -270,7 +270,7 @@ def compute_score(
             "accuracy": accuracy,
             "data_source": data_source
         }
-    
+
     except Exception:
         return {
             "score": 0.0,
@@ -293,24 +293,24 @@ from pydantic import BaseModel, Field
 
 class PointwiseTrainTemplate(BaseModel):
     """Template for pointwise score parsing"""
-    
+
     score: int = Field(
         default=...,
         description="score of helpfulness from 0 to 4"
     )
-    
+
     @classmethod
     def parse(cls, text: str) -> "PointwiseTrainTemplate":
         """Extract score from model output"""
         # Match <score>X</score>
         pattern = r"<score>(.*?)</score>"
         match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
-        
+
         if match:
             score_str = match.group(1).strip()
             score = int(score_str)
             return cls(score=score)
-        
+
         raise ValueError("Failed to parse score from output")
 ```
 
@@ -386,7 +386,7 @@ py_modules:
   - ./reward_fn.py
   - ./dataset.py
   - ./template.py
-  
+
 pip:
   - torch>=2.0.0
   - transformers>=4.30.0
@@ -530,11 +530,11 @@ Implement domain-specific reward logic:
 def compute_custom_reward(predicted, true):
     # Weight recent data more
     time_weight = get_time_weight(data_source)
-    
+
     # Penalize extreme errors more
     error = abs(predicted - true)
     penalty = error ** 2
-    
+
     return (1.0 - penalty / 16) * time_weight
 ```
 

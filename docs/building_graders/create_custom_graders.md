@@ -47,11 +47,11 @@ When developing custom graders, ensure they are robust, maintainable, and effect
 ```python
 async def evaluate_helpfulness(query: str, response: str) -> GraderScore:
     """Evaluate response helpfulness.
-    
+
     Args:
         query: The original user query
         response: The model's response to evaluate
-        
+
     Returns:
         GraderScore with score between 0.0-1.0 and explanation
     """
@@ -91,16 +91,16 @@ helpfulness_grader = LLMGrader(
     model=model,
     template="""
     You are an expert evaluator assessing the helpfulness of AI responses.
-    
+
     Instructions:
     1. Consider accuracy, completeness, clarity, and relevance
     2. Score 0.0 for completely unhelpful responses
     3. Score 1.0 for exceptionally helpful responses
     4. Score in between for partial helpfulness
-    
+
     Query: {query}
     Response: {response}
-    
+
     Provide your response in JSON format:
     {
         "score": <numerical_score_between_0_and_1>,
@@ -124,16 +124,16 @@ comparison_grader = LLMGrader(
     model=model,
     template="""
     You are an expert judge comparing AI responses to the same query.
-    
+
     Instructions:
     1. Compare overall quality, considering accuracy and helpfulness
     2. Rank from best (1) to worst (2)
     3. Explain your reasoning briefly
-    
+
     Query: {query}
     Response 1: {response_1}
     Response 2: {response_2}
-    
+
     Provide your response in JSON format:
     {
         "rank": [<better_response_number>, <worse_response_number>],
@@ -157,37 +157,37 @@ async def content_quality_checker(query: str, response: str) -> GraderScore:
     # Define quality criteria
     min_length = 20
     required_sections = ["introduction", "body", "conclusion"]
-    
+
     # Check length
     length_score = min(len(response) / 100.0, 1.0)
     length_pass = len(response) >= min_length
-    
+
     # Check for required sections
     section_scores = []
     for section in required_sections:
         section_found = section.lower() in response.lower()
         section_scores.append(1.0 if section_found else 0.0)
-    
+
     section_score = sum(section_scores) / len(required_sections)
-    
+
     # Calculate overall score
     overall_score = (length_score + section_score) / 2.0
-    
+
     # Generate reason
     reasons = []
     if length_pass:
         reasons.append(f"Length OK ({len(response)} chars)")
     else:
         reasons.append(f"Too short ({len(response)} chars)")
-        
+
     found_sections = [sec for i, sec in enumerate(required_sections) if section_scores[i] > 0]
     missing_sections = [sec for i, sec in enumerate(required_sections) if section_scores[i] == 0]
-    
+
     if found_sections:
         reasons.append(f"Found sections: {', '.join(found_sections)}")
     if missing_sections:
         reasons.append(f"Missing sections: {', '.join(missing_sections)}")
-    
+
     return GraderScore(
         name="content_quality_checker",
         score=overall_score,
@@ -211,27 +211,27 @@ from rm_gallery.core.graders.schema import GraderRank
 
 async def multi_factor_ranker(query: str, response_1: str, response_2: str) -> GraderRank:
     """Rank responses based on multiple factors."""
-    
+
     def calculate_score(response):
         # Factor 1: Length (0-0.3 weight)
         length_score = min(len(response) / 200.0, 1.0) * 0.3
-        
+
         # Factor 2: Keyword density (0-0.4 weight)
         keywords = ["accurate", "complete", "clear", "relevant"]
         keyword_count = sum(1 for kw in keywords if kw.lower() in response.lower())
         keyword_score = (keyword_count / len(keywords)) * 0.4
-        
+
         # Factor 3: Structure indicators (0-0.3 weight)
         structure_indicators = [". ", "! ", "? ", "\n\n"]
         structure_count = sum(response.count(indicator) for indicator in structure_indicators)
         structure_score = min(structure_count / 10.0, 1.0) * 0.3
-        
+
         return length_score + keyword_score + structure_score
-    
+
     # Calculate scores
     score_1 = calculate_score(response_1)
     score_2 = calculate_score(response_2)
-    
+
     # Rank based on scores
     if score_1 > score_2:
         rank = [1, 2]
@@ -242,7 +242,7 @@ async def multi_factor_ranker(query: str, response_1: str, response_2: str) -> G
     else:
         rank = [1, 2]  # Tie goes to first response
         reason = f"Both responses scored {score_1:.2f}"
-    
+
     return GraderRank(
         name="multi_factor_ranker",
         rank=rank,

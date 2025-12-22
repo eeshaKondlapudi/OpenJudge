@@ -56,7 +56,7 @@ async def main():
         "syntax": SyntaxCheckGrader(),
         "style": CodeStyleGrader(),
     })
-    
+
     code_response = """
 ```python
 def fibonacci(n):
@@ -65,9 +65,9 @@ def fibonacci(n):
     return fibonacci(n-1) + fibonacci(n-2)
 ```
     """
-    
+
     results = await runner.arun([{"response": code_response}])
-    
+
     print(f"Syntax Score: {results['syntax'][0].score}")
     print(f"Style Score: {results['style'][0].score}")
 
@@ -129,7 +129,7 @@ from rm_gallery.core.graders.code import SyntaxCheckGrader
 
 async def main():
     grader = SyntaxCheckGrader()
-    
+
     # Valid syntax
     response = """
 Here's a function:
@@ -138,11 +138,11 @@ def greet(name):
     return f"Hello, {name}!"
 ```
     """
-    
+
     result = await grader.aevaluate(response=response)
     print(f"Score: {result.score}")   # 1.0
     print(f"Reason: {result.reason}") # Syntax check: 1/1 blocks valid, 0 errors
-    
+
     # Invalid syntax
     invalid_response = """
 ```python
@@ -150,7 +150,7 @@ def greet(name)
     return f"Hello, {name}!"
 ```
     """
-    
+
     result = await grader.aevaluate(response=invalid_response)
     print(f"Score: {result.score}")   # -0.5
     print(f"Errors: {result.metadata['syntax_errors']}")
@@ -194,7 +194,7 @@ from rm_gallery.core.graders.code import CodeStyleGrader
 
 async def main():
     grader = CodeStyleGrader()
-    
+
     # Good style
     good_code = """
 ```python
@@ -205,11 +205,11 @@ def calculate_sum(numbers):
     return total
 ```
     """
-    
+
     result = await grader.aevaluate(response=good_code)
     print(f"Score: {result.score}")   # 1.0
     print(f"Reason: {result.reason}")
-    
+
     # Poor style (mixed naming)
     poor_code = """
 ```python
@@ -220,7 +220,7 @@ def CalculateSum(Numbers):
     return Total
 ```
     """
-    
+
     result = await grader.aevaluate(response=poor_code)
     print(f"Score: {result.score}")   # Lower score
     print(f"Details: {result.metadata['details']}")
@@ -261,24 +261,24 @@ from rm_gallery.core.graders.code import PatchSimilarityGrader
 
 async def main():
     grader = PatchSimilarityGrader()
-    
+
     ground_truth = """
 def calculate_area(radius):
     import math
     return math.pi * radius ** 2
 """
-    
+
     response = """
 def calculate_area(r):
     import math
     return math.pi * r ** 2
 """
-    
+
     result = await grader.aevaluate(
         response=response,
         reference_response=ground_truth
     )
-    
+
     print(f"Score: {result.score}")           # ~0.95
     print(f"Similarity: {result.metadata['similarity']:.3f}")
     print(f"Reason: {result.reason}")
@@ -326,7 +326,7 @@ from rm_gallery.core.graders.math import MathExpressionVerifyGrader
 
 async def main():
     grader = MathExpressionVerifyGrader()
-    
+
     # Simple numeric comparison
     result = await grader.aevaluate(
         response="4",
@@ -334,14 +334,14 @@ async def main():
     )
     print(f"Score: {result.score}")
     print(f"Reason: {result.reason}")
-    
+
     # LaTeX expressions
     result = await grader.aevaluate(
         response=r"\frac{1}{2}",
         reference_response="0.5"
     )
     print(f"Score: {result.score}")
-    
+
     # Non-equivalent values
     result = await grader.aevaluate(
         response="5",
@@ -364,7 +364,7 @@ from rm_gallery.core.graders.math import MathExpressionVerifyGrader
 async def main():
     # Set timeout_score to 0.0 to be stricter on errors
     grader = MathExpressionVerifyGrader(timeout_score=0.0)
-    
+
     result = await grader.aevaluate(
         response="6",
         reference_response="2*3"
@@ -397,9 +397,9 @@ async def main():
         "style": GraderConfig(grader=CodeStyleGrader()),
         "execution": GraderConfig(grader=CodeExecutionGrader(continuous=True)),
     }
-    
+
     runner = GradingRunner(grader_configs=grader_configs)
-    
+
     # Evaluate code submissions
     dataset = [
         {
@@ -414,13 +414,13 @@ def calculate_sum(numbers):
             """,
         }
     ]
-    
+
     results = await runner.arun(dataset)
-    
+
     print(f"Syntax Score: {results['syntax'][0].score}")
     print(f"Style Score: {results['style'][0].score}")
     print(f"Execution Score: {results['execution'][0].score}")
-    
+
     # Overall assessment
     avg_score = sum(r[0].score for r in results.values()) / len(results)
     print(f"\nOverall Code Quality: {avg_score:.2f}")

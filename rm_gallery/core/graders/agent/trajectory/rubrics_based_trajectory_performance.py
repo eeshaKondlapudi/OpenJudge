@@ -277,18 +277,18 @@ class RubricsBasedTrajectoryPerformance(LLMGrader):
             language: Language for generating the reason string
 
         Returns:
-            Callable that processes ChatResponse into metadata dict with score and reason
+            Callable that processes ChatResponse into parsed dict with score and reason
         """
 
         def callback(response: Any) -> Dict[str, Any]:
             # Extract dimension evaluations from response
             dimension_evaluations_raw = []
-            if response.metadata is not None:
+            if response.parsed is not None:
                 # Handle both nested and flat structures
-                if "dimension_evaluations" in response.metadata:
-                    dimension_evaluations_raw = response.metadata["dimension_evaluations"]
+                if "dimension_evaluations" in response.parsed:
+                    dimension_evaluations_raw = response.parsed["dimension_evaluations"]
                 else:
-                    dimension_evaluations_raw = response.metadata
+                    dimension_evaluations_raw = response.parsed
 
             # Parse into RubricEvaluation objects
             dimension_evaluations: List[RubricEvaluation] = []
@@ -572,6 +572,10 @@ class RubricsBasedTrajectoryPerformance(LLMGrader):
                 final_response=final_response,
                 rubrics=rubrics_str,
             )
+
+            # Check if result is a GraderError, and if so, return it directly
+            if isinstance(result, GraderError):
+                return result
 
             return GraderScore(
                 name=self.name,

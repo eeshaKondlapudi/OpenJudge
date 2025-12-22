@@ -46,7 +46,7 @@ from tutorials.cookbooks.evaluation_cases.pairwise_evaluation import evaluate_ta
 
 async def main():
     instruction = "Write a short poem about artificial intelligence"
-    
+
     model_outputs = {
         "model_v1": "Silicon minds awake at dawn, thinking thoughts not yet withdrawn.",
         "model_v2": "Circuits pulse with electric thought, patterns learned, connections wrought.",
@@ -57,7 +57,7 @@ async def main():
 
     # Best model
     print(f"Best: {results['pairwise'].best_model}")
-    
+
     # Full rankings
     for rank, (model, win_rate) in enumerate(results['pairwise'].rankings, 1):
         print(f"{rank}. {model}: {win_rate:.1%}")
@@ -207,7 +207,7 @@ from tutorials.cookbooks.evaluation_cases.pairwise_evaluation import (
 async def compare_models():
     # Define task and model outputs
     instruction = "Write a professional email declining a meeting request"
-    
+
     model_outputs = {
         "baseline": "I can't make the meeting. Sorry.",
         "v1_improved": "Thank you for the invitation. Unfortunately, I have a conflict...",
@@ -231,7 +231,7 @@ async def compare_models():
         print(f"{rank}. {model}: {win_rate:.1%}")
 
     print(f"\nBest model: {analysis.best_model}")
-    
+
     return analysis
 
 # Run

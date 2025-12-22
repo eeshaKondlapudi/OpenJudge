@@ -297,10 +297,7 @@ class FinancialReportDataSupportGrader(LLMGrader):
 
         if not query or not answer:
             logger.warning("Empty query or answer, returning error")
-            return GraderError(
-                name=self.name,
-                error="Empty query or answer"
-            )
+            return GraderError(name=self.name, error="Empty query or answer")
 
         try:
             # Call parent evaluation with formatted parameters
@@ -322,7 +319,4 @@ class FinancialReportDataSupportGrader(LLMGrader):
 
         except Exception as e:
             logger.error(f"Error evaluating {self.name}: {e}")
-            return GraderError(
-                name=self.name,
-                error=str(e)
-            )
+            return GraderError(name=self.name, error=str(e))

@@ -42,7 +42,7 @@ runner = GradingRunner(
         "relevance": {
             "grader": RelevanceGrader(),
             "mapper": {
-                "query": "question", 
+                "query": "question",
                 "response": "answer",
                 "reference": "reference_answer"
             }
@@ -52,8 +52,8 @@ runner = GradingRunner(
     aggregators=WeightedSumAggregator(
         name="overall_score",
         weights={
-            "helpfulness": 0.5, 
-            "accuracy": 0.3, 
+            "helpfulness": 0.5,
+            "accuracy": 0.3,
             "relevance": 0.2
         }
     )

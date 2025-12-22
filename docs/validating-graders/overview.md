@@ -128,10 +128,10 @@ grader = LLMGrader(
     model=model,
     template="""
     Evaluate the quality of this response:
-    
+
     Query: {query}
     Response: {response}
-    
+
     Return JSON: {{"score": <0.0-1.0>, "reason": "<explanation>"}}
     """
 )
@@ -206,7 +206,7 @@ from typing import List, Any
 
 class MyCustomGrader(BaseGrader):
     """Custom grader for domain-specific evaluation."""
-    
+
     def __init__(self, model, name="custom_grader"):
         super().__init__(
             name=name,
@@ -214,7 +214,7 @@ class MyCustomGrader(BaseGrader):
             description="My custom evaluation logic"
         )
         self.model = model
-    
+
     async def aevaluate(
         self,
         query: str,
@@ -223,11 +223,11 @@ class MyCustomGrader(BaseGrader):
     ) -> GraderScore:
         """
         Evaluate candidates and return best choice.
-        
+
         Args:
             query: Input prompt
             candidates: List of responses to evaluate
-            
+
         Returns:
             GraderScore with predicted ranking
         """
@@ -240,9 +240,9 @@ class MyCustomGrader(BaseGrader):
             ])
             score = self._parse_score(result)
             scores.append(score)
-        
+
         best_index = scores.index(max(scores))
-        
+
         return GraderScore(
             name=self.name,
             score=float(best_index),  # Return predicted best index
@@ -262,7 +262,7 @@ from typing import List, Dict
 def load_validation_data(file_path: str) -> List[Dict]:
     """
     Load validation data from file.
-    
+
     Expected format:
     - query: str
     - candidates: List[str]
@@ -270,7 +270,7 @@ def load_validation_data(file_path: str) -> List[Dict]:
     - category: str (optional, for subset analysis)
     """
     df = pd.read_parquet(file_path)  # or .csv, .json
-    
+
     data = []
     for _, row in df.iterrows():
         data.append({
@@ -279,7 +279,7 @@ def load_validation_data(file_path: str) -> List[Dict]:
             "ground_truth": row["ground_truth"],
             "category": row.get("category", "default")
         })
-    
+
     return data
 ```
 
@@ -293,9 +293,9 @@ from typing import List, Any
 
 class MyValidationAnalyzer(BaseAnalyzer):
     """Analyzer for custom validation metrics."""
-    
+
     name: str = "Custom Validation"
-    
+
     def analyze(
         self,
         dataset: List[dict],
@@ -304,49 +304,49 @@ class MyValidationAnalyzer(BaseAnalyzer):
     ) -> AnalysisResult:
         """
         Analyze grader results against ground truth.
-        
+
         Args:
             dataset: Validation dataset with ground truth
             grader_results: Grader predictions
-            
+
         Returns:
             AnalysisResult with accuracy metrics
         """
         correct = 0
         total = 0
         category_stats = {}
-        
+
         for sample, result in zip(dataset, grader_results):
             if not result:
                 continue
-                
+
             # Compare prediction with ground truth
             predicted = int(result.score)  # Predicted best index
             ground_truth = sample["ground_truth"]
-            
+
             is_correct = predicted == ground_truth
-            
+
             if is_correct:
                 correct += 1
             total += 1
-            
+
             # Track per-category stats
             category = sample.get("category", "default")
             if category not in category_stats:
                 category_stats[category] = {"correct": 0, "total": 0}
-            
+
             category_stats[category]["total"] += 1
             if is_correct:
                 category_stats[category]["correct"] += 1
-        
+
         # Compute metrics
         accuracy = correct / total if total > 0 else 0.0
-        
+
         category_accuracy = {
             cat: stats["correct"] / stats["total"] if stats["total"] > 0 else 0.0
             for cat, stats in category_stats.items()
         }
-        
+
         return AnalysisResult(
             name=self.name,
             metadata={
@@ -372,22 +372,22 @@ from rm_gallery.core.runner import GradingRunner
 
 async def validate_grader():
     """Complete grader validation workflow."""
-    
+
     # 1. Load validation data
     validation_data = load_validation_data("validation_set.parquet")
     print(f"Loaded {len(validation_data)} validation samples")
-    
+
     # 2. Initialize grader
     model = OpenAIChatModel(model="qwen3-32b")
     grader = MyCustomGrader(model=model)
-    
+
     # 3. Run evaluation
     runner = GradingRunner(
         grader_configs={"custom_grader": grader},
         max_concurrency=8,
         show_progress=True
     )
-    
+
     # Build dataset for runner
     dataset = []
     for sample in validation_data:
@@ -395,18 +395,18 @@ async def validate_grader():
             "query": sample["query"],
             "candidates": sample["candidates"]
         })
-    
+
     # Run evaluation
     results = await runner.arun(dataset)
     grader_results = results["custom_grader"]
-    
+
     # 4. Analyze results
     analyzer = MyValidationAnalyzer()
     report = analyzer.analyze(
         dataset=validation_data,
         grader_results=grader_results
     )
-    
+
     # 5. Print results
     print(f"\n{'='*50}")
     print(f"Validation Report: {analyzer.name}")
@@ -414,11 +414,11 @@ async def validate_grader():
     print(f"Overall Accuracy: {report.metadata['accuracy']:.2%}")
     print(f"Correct: {report.metadata['correct_count']}/{report.metadata['total_samples']}")
     print(f"\nPer-Category Accuracy:")
-    
+
     for category, accuracy in report.metadata["category_accuracy"].items():
         stats = report.metadata["category_stats"][category]
         print(f"  {category}: {accuracy:.2%} ({stats['correct']}/{stats['total']})")
-    
+
     return report
 
 # Run validation
@@ -496,14 +496,14 @@ def cross_validate_grader(data, grader, n_splits=5):
     """Run k-fold cross-validation."""
     kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
     accuracies = []
-    
+
     for train_idx, test_idx in kf.split(data):
         test_data = [data[i] for i in test_idx]
-        
+
         # Run validation on this fold
         results = await validate_on_fold(grader, test_data)
         accuracies.append(results["accuracy"])
-    
+
     print(f"Mean Accuracy: {np.mean(accuracies):.2%} ± {np.std(accuracies):.2%}")
 ```
 
@@ -534,18 +534,18 @@ Assess whether grader confidence matches actual accuracy:
 def analyze_calibration(results, ground_truth):
     """Check if high-confidence predictions are more accurate."""
     bins = {"high": [], "medium": [], "low": []}
-    
+
     for result, truth in zip(results, ground_truth):
         confidence = result.metadata.get("confidence", result.score)
         is_correct = (result.score >= 0.5) == truth
-        
+
         if confidence > 0.8:
             bins["high"].append(is_correct)
         elif confidence > 0.5:
             bins["medium"].append(is_correct)
         else:
             bins["low"].append(is_correct)
-    
+
     for level, correct_list in bins.items():
         if correct_list:
             acc = sum(correct_list) / len(correct_list)
@@ -571,7 +571,7 @@ def analyze_calibration(results, ground_truth):
 ```python
 # 1. Analyze failed cases
 failed_cases = [
-    (sample, result) 
+    (sample, result)
     for sample, result in zip(validation_data, results)
     if result.score < 0.5  # Assuming binary threshold
 ]

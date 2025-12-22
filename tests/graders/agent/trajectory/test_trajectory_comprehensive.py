@@ -64,7 +64,7 @@ class TestTrajectoryComprehensiveGraderUnit:
         """Test successful evaluation with valid inputs"""
         # Setup mock response for step evaluations
         mock_step_response = AsyncMock()
-        mock_step_response.metadata = {
+        mock_step_response.parsed = {
             "step_index": 0,
             "step_description": "Call weather API",
             "contribution_score": 5,
@@ -76,11 +76,11 @@ class TestTrajectoryComprehensiveGraderUnit:
 
         # Setup mock response for overall evaluation
         mock_overall_response = AsyncMock()
-        mock_overall_response.metadata = {
+        mock_overall_response.parsed = {
             "score": 1,
             "reason": "Excellent problem solving with efficient tool usage",
             "is_resolved": True,
-            "step_evaluations": [mock_step_response.metadata],
+            "step_evaluations": [mock_step_response.parsed],
         }
 
         mock_model = AsyncMock()
@@ -141,6 +141,7 @@ class TestTrajectoryComprehensiveGraderUnit:
         result = await grader.aevaluate(messages=[])
 
         # Assertions
+        assert isinstance(result, GraderError)
         assert "empty" in result.error.lower() or "empty" in str(result.metadata).lower()
         assert result.metadata.get("step_evaluations", []) == []
 
@@ -163,7 +164,7 @@ class TestTrajectoryComprehensiveGraderUnit:
         result = await grader.aevaluate(messages=messages)
 
         # Assertions
-        assert isinstance(result.error, str)
+        assert isinstance(result, GraderError)
 
     @pytest.mark.asyncio
     async def test_error_handling(self):
@@ -190,6 +191,7 @@ class TestTrajectoryComprehensiveGraderUnit:
         result = await grader.aevaluate(messages=messages)
 
         # Assertions
+        assert isinstance(result, GraderError)
         assert "error" in result.error.lower() or "error" in str(result.metadata).lower()
 
     @pytest.mark.asyncio
@@ -380,9 +382,9 @@ class TestTrajectoryComprehensiveGraderQuality:
         assert isinstance(result.reason, str)
         assert len(result.reason) > 0
 
-        # Verify metadata structure
-        assert "step_evaluations" in result.metadata
-        step_evals = result.metadata["step_evaluations"]
+        # Verify parsed structure
+        assert "step_evaluations" in result.parsed
+        step_evals = result.parsed["step_evaluations"]
         assert isinstance(step_evals, list)
 
         # For a simple successful query, expect good score
@@ -392,7 +394,7 @@ class TestTrajectoryComprehensiveGraderQuality:
         print(f"Score: {result.score:.2f}")
         print(f"Reason: {result.reason}")
         print(f"Steps Evaluated: {len(step_evals)}")
-        print(f"Is Resolved: {result.metadata.get('is_resolved')}")
+        print(f"Is Resolved: {result.parsed.get('is_resolved')}")
 
     @pytest.mark.asyncio
     async def test_complex_multiturn_trajectory_quality(self, model):
@@ -606,14 +608,14 @@ class TestTrajectoryComprehensiveGraderQuality:
         assert len(result.reason) > 0
 
         # Verify step evaluations exist
-        step_evals = result.metadata.get("step_evaluations", [])
+        step_evals = result.parsed.get("step_evaluations", [])
         assert isinstance(step_evals, list)
 
         # Should have evaluated multiple steps (7 tool calls)
         assert len(step_evals) >= 5, f"Complex trajectory should have >= 5 steps, got {len(step_evals)}"
 
-        # Verify metadata
-        assert "is_resolved" in result.metadata
+        # Verify parsed
+        assert "is_resolved" in result.parsed
 
         # For a comprehensive research query, expect good score
         assert result.score >= 0.6, f"Comprehensive research should score >= 0.6, got {result.score}"
@@ -622,7 +624,7 @@ class TestTrajectoryComprehensiveGraderQuality:
         print(f"\n=== Complex Multi-turn Trajectory Quality Test ===")
         print(f"Overall Score: {result.score:.2f}")
         print(f"Number of Steps Evaluated: {len(step_evals)}")
-        print(f"Resolution Status: {result.metadata.get('is_resolved')}")
+        print(f"Resolution Status: {result.parsed.get('is_resolved')}")
         print(f"\nStep-by-Step Scores:")
 
         for step in step_evals[:3]:  # Print first 3 steps

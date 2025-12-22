@@ -45,11 +45,11 @@ pytest tests/
 ```python
 def evaluate_grader(model_path: str, dataset: str) -> dict:
     """Evaluate a grader on a benchmark dataset.
-    
+
     Args:
         model_path: Path to the grader model
         dataset: Name of evaluation dataset
-        
+
     Returns:
         Dictionary with evaluation metrics
     """

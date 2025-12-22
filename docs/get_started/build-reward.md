@@ -61,7 +61,7 @@ dataset = [
     },
 ]
 
-# If you need correctness evaluation with reference answers, 
+# If you need correctness evaluation with reference answers,
 # use a mapper to provide reference_response for CorrectnessGrader
 dataset_with_references = [
     {
@@ -315,11 +315,11 @@ from rm_gallery.core.runner.aggregator.weighted_sum_aggregator import WeightedSu
 
 async def compute_training_rewards(dataset):
     """Complete workflow: Environment → Data → Graders → Runner → Aggregation."""
-    
+
     # 1. Environment Setup
     load_dotenv()
     assert os.getenv("OPENAI_API_KEY"), "API key not configured"
-    
+
     # 2. Initialize Model
     model = OpenAIChatModel(model="qwen3-32b")
 

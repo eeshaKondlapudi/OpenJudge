@@ -153,7 +153,7 @@ from rm_gallery.core.graders.common.relevance import RelevanceGrader
 async def main():
     model = OpenAIChatModel(model="qwen3-32b")
     grader = RelevanceGrader(model=model)
-    
+
     # Prepare data
     data = {
         "query": "What is machine learning?",

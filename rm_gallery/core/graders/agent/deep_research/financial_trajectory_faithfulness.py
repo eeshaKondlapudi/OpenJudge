@@ -19,7 +19,7 @@ from rm_gallery.core.models.base_chat_model import BaseChatModel
 from rm_gallery.core.models.schema.oai.message import ChatMessage
 from rm_gallery.core.models.schema.prompt_template import LanguageEnum, PromptTemplate
 
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long, too-many-lines
 
 # Chinese Prompt
 FINANCIAL_FAITHFUL_PROMPT_ZH = """# 任务
@@ -1235,9 +1235,9 @@ class FinancialTrajectoryFaithfulGrader(LLMGrader):
                     structured_results.append(f"{header}\n{msg_content}\n")
 
             if self.language == LanguageEnum.ZH:
-                search_result = "\n".format(len(tool_messages)) + "\n".join(structured_results)
+                search_result = f"{len(tool_messages)}\n" + "\n".join(structured_results)
             else:
-                search_result = "\n".format(len(tool_messages)) + "\n".join(structured_results)
+                search_result = f"{len(tool_messages)}\n" + "\n".join(structured_results)
             logger.info(f"Structured search result with {len(tool_messages)} sources")
         else:
             logger.warning("No search result found in the messages")

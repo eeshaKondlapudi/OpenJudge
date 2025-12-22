@@ -38,7 +38,7 @@ dataset = load_dataset("anon8231489123/ShareGPT_Vicuna_unfiltered")
 
 def to_messages(example):
     return {"messages": [
-        {"role": "assistant" if msg["from"] == "gpt" else "user", 
+        {"role": "assistant" if msg["from"] == "gpt" else "user",
          "content": msg["value"]}
         for msg in example["conversations"]
     ]}

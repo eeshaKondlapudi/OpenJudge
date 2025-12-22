@@ -28,7 +28,7 @@ from loguru import logger
 from .testing_util import run_test
 
 
-def _temp_run(sample: Any, generation: Any, debug: bool, result: list, metadata_list: list, timeout: float):
+def _temp_run(sample: Any, generation: Any, result: list, metadata_list: list, timeout: float):
     """Run a single test case with a timeout."""
     # pylint: disable=unspecified-encoding
     with open(os.devnull, mode="w") as devnull:
@@ -38,8 +38,7 @@ def _temp_run(sample: Any, generation: Any, debug: bool, result: list, metadata_
             res, metadata = run_test(
                 in_outs=sample,
                 test=generation,
-                debug=debug,
-                timeout=timeout,
+                timeout=int(timeout),
             )
             result.append(res)
             metadata_list.append(metadata)
