@@ -6,20 +6,21 @@ Get started with RM-Gallery in 5 minutes. This guide walks you through installat
 
 === "pip"
 
-    ```bash
-    pip install rm-gallery
-    ```
+```bash
+pip install rm-gallery
+```
+=== "From Source"
 
-=== "Poetry"
+```bash
+git clone https://github.com/modelscope/RM-Gallery.git
+cd RM-Gallery
+pip install -e .
+```
 
-    ```bash
-    git clone https://github.com/modelscope/RM-Gallery.git
-    cd RM-Gallery
-    poetry install
-    ```
-
-!!! tip "Requirements"
-    RM-Gallery requires Python 3.10 or higher.
+> **Tips:**
+> - RM-Gallery requires Python version >=3.10 and <3.13. For best compatibility, we recommend using Python 3.10 or 3.11.
+> - For development purposes, install with dev dependencies: `pip install -e .[dev]`
+> - For reinforcement learning and training scenarios, use the VerL option: `pip install -e .[verl]` which includes transformers library and other dependencies required for training reward models.
 
 
 ## Configure Environment

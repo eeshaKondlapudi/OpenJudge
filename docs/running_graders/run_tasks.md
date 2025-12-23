@@ -1,114 +1,85 @@
 # Run Grading Tasks
+> **Tip:** Grading is the process of evaluating how good responses from an AI model are. Think of it like having different teachers grade student essays - each teacher focuses on a different aspect like grammar, content, or creativity.
 
-!!! tip "What is Grading?"
-    Grading is the process of evaluating how good responses from an AI model are. Think of it like having different teachers grade student essays - each teacher focuses on a different aspect like grammar, content, or creativity.
+## What is GradingRunner?
+The [GradingRunner](../../rm_gallery/core/runner/grading_runner.py) is RM-Gallery's primary execution engine that orchestrates the evaluation process across multiple graders. It acts as the conductor of an orchestra, coordinating all the different graders to create a harmonious evaluation process.
 
-## What is a Runner?
+GradingRunner's main purpose is to coordinate the execution of multiple graders across your dataset, providing the infrastructure needed for efficient and effective evaluations. Specifically, it provides:
 
-In RM-Gallery, a Runner is an execution engine that orchestrates the evaluation process. It manages how evaluators (called "Graders") are executed against datasets, handles concurrency, transforms data, and organizes results.
+- **Execution orchestration**: Managing the execution of multiple graders across your dataset
+- **Data mapping services**: Transforming your data fields to match the parameter names expected by your graders
+- **Concurrency management**: Controlling how many evaluations happen simultaneously to optimize resource usage
+- **Result aggregation**: Combining results from multiple graders into unified scores when needed
+- **Resource optimization**: Executing graders concurrently to maximize throughput
 
-**Key responsibilities:**
+The GradingRunner encapsulates the complexity of managing concurrent evaluations, data transformations, and result aggregation. It provides a clean interface that allows you to focus on defining what you want to evaluate rather than worrying about how to execute those evaluations efficiently. With built-in support for asynchronous processing, the GradingRunner maximizes throughput when working with resource-intensive graders like large language models.
 
-- Orchestrating execution of multiple graders across your dataset
-- Controlling how many evaluations happen simultaneously to optimize resource usage
-- Mapping dataset fields to the format expected by each grader
-- Collecting results in a predictable format
-
-With this foundational understanding of what a Runner does, let's explore RM-Gallery's primary implementation, the `GradingRunner`, which brings these capabilities together in a powerful and flexible package.
-
----
-
-## Introducing GradingRunner
-
-The `GradingRunner` is RM-Gallery's primary implementation of a Runner, specifically designed for executing grading tasks. Whether you're evaluating a few samples or processing thousands, understanding how to effectively use the GradingRunner is key to getting the most out of RM-Gallery.
-
-!!! note "Why GradingRunner?"
-    The GradingRunner encapsulates the complexity of managing concurrent evaluations, data transformations, and result aggregation. It provides a clean interface that allows you to focus on defining **what** you want to evaluate rather than worrying about **how** to execute those evaluations efficiently. With built-in support for asynchronous processing, the GradingRunner maximizes throughput when working with resource-intensive graders like large language models.
-
----
-
-## Getting Started with GradingRunner
-
-Setting up an evaluation workflow with the GradingRunner involves configuring the graders you want to use and how they should be executed. The runner takes care of executing these graders across your dataset and collecting the results in an organized manner.
-
-**Configuration process:**
-
-1. Define grader instances
-2. Map your dataset fields to the inputs expected by each grader
-3. (Optional) Configure aggregators to combine results from multiple graders
-
-!!! info "Why Mapping Matters"
-    Mapping is crucial because your data format rarely matches exactly what graders expect. The mapper system bridges this gap seamlessly.
+## Configuring and Using the Runner
+Setting up an evaluation workflow with the GradingRunner involves configuring the graders you want to use and how they should be executed. The configuration process involves defining grader instances and mapping your dataset fields to the inputs expected by each grader. This mapping is crucial because your data format rarely matches exactly what graders expect. Additionally, you can configure aggregators to combine results from multiple graders into composite scores.
 
 Let's begin with a simple example to understand how GradingRunner works:
 
 ```python
 from rm_gallery.core.runner.grading_runner import GradingRunner
-from rm_gallery.core.runner.aggregator.weighted_sum import WeightedSumAggregator
+from rm_gallery.core.runner.aggregator.weighted_sum_aggregator import WeightedSumAggregator
 from rm_gallery.core.graders.common.helpfulness import HelpfulnessGrader
-from rm_gallery.core.graders.common.accuracy import AccuracyGrader
 from rm_gallery.core.graders.common.relevance import RelevanceGrader
+from rm_gallery.core.models.openai_chat_model import OpenAIChatModel
 
-# Configure graders with field mappings
+# Prepare your data in whatever format works for you
+data = [
+    {
+        "query": "What is the capital of France?",
+        "response": "Paris",
+        "reference_answer": "Paris"
+    },
+    {
+        "query": "Who wrote Romeo and Juliet?",
+        "response": "Shakespeare",
+        "reference_answer": "William Shakespeare"
+    }
+]
+
+# Configure graders with mappers to connect your data fields
 grader_configs = {
     "helpfulness": {
-        "grader": HelpfulnessGrader(),
-        "mapper": {"query": "question", "response": "answer"}
-    },
-    "accuracy": {
-        "grader": AccuracyGrader(),
-        "mapper": {"question": "question", "response": "answer"}
+        "grader": HelpfulnessGrader(model=OpenAIChatModel("gpt-4")),
+        "mapper": {"question": "query", "answer": "response"}
     },
     "relevance": {
-        "grader": RelevanceGrader(),
-        "mapper": {
-                "query": "question", 
-                "response": "answer",
-                "reference": "reference_answer"
-        }
+        "grader": RelevanceGrader(model=OpenAIChatModel("gpt-4")),
+        "mapper": {"q": "query", "a": "response", "ref": "reference_answer"}
     }
 }
 
-# Create runner with aggregator
+# Configure aggregators to combine results
+aggregators = [
+    WeightedSumAggregator(weights={"helpfulness": 0.6, "relevance": 0.4})
+]
+
+# Run evaluation with concurrency control
 runner = GradingRunner(
-    grader_configs=grader_configs,
-    max_concurrency=10,
-    aggregators=WeightedSumAggregator(
-        name="overall_score",
-        weights={
-            "helpfulness": 0.5, 
-            "accuracy": 0.3, 
-            "relevance": 0.2
-        }
-    )
+    grader_configs,
+    aggregators=aggregators,
+    max_concurrency=5
 )
-
-# Run evaluation
-results = await runner.arun(dataset)
-
-# Process results
-for grader_name, grader_results in results.items():
-    print(f"\nResults from {grader_name}:")
-    for i, result in enumerate(grader_results):
-        if hasattr(result, 'score'):
-            print(f"  Sample {i+1}: Score = {result.score}")
+results = await runner.arun(data)
 ```
 
-This basic workflow works well for straightforward evaluations, but real-world scenarios often require more sophisticated handling. Let's look at some common challenges and how the GradingRunner addresses them.
+This example demonstrates several key concepts that are essential to understanding how to configure and use Runners:
 
----
+### Data Mapping
+The GradingRunner's mapper functionality allows you to transform your data fields to match the parameter names expected by your graders. Since your input data may not have the exact field names that your graders expect, mappers provide a way to map between your data structure and the grader's expected inputs.
 
-## Bridging Data and Graders
+In the example above:
+- The HelpfulnessGrader expects inputs named "question" and "answer", but our data has fields named "query" and "response", so the mapper `{"question": "query", "answer": "response"}` connects them.
+- The RelevanceGrader expects inputs named "q", "a", and "ref", so the mapper `{"q": "query", "a": "response", "ref": "reference_answer"}` maps our data fields to the grader's expected inputs.
 
-One common challenge is that your data rarely matches exactly what graders expect. Real-world datasets come in all shapes and sizes, and rarely conform to the exact input format that graders expect. 
+Types of mappers include:
+- Dictionary mappers for simple key-value mappings (e.g., `{"question": "query", "answer": "response"}`)
+- Callable mappers for custom functions that transform data in more complex ways
 
-The GradingRunner provides flexible mechanisms to bridge this gap through its **mapper system**. Mappers transform your data into the format required by each grader, allowing you to use the same dataset with different graders that have varying input requirements.
-
-### Field Mapping
-
-Field mapping is the simplest form of data transformation, where you map fields from your dataset to the field names expected by graders. This is particularly useful when your dataset uses different naming conventions than what graders expect.
-
-**Example: When your field names don't align with grader expectations**
+When your field names don't align with grader expectations:
 
 ```python
 # Your data structure - notice the field names differ from what graders expect
@@ -121,6 +92,7 @@ dataset = [
 ]
 
 # Map your fields to what graders expect
+# This tells the runner how to convert your data format to what graders need
 grader_configs = {
     "helpfulness": {
         "grader": HelpfulnessGrader(),
@@ -134,33 +106,16 @@ grader_configs = {
         "mapper": {
             "query": "question",
             "response": "answer",
-            "reference": "reference_answer"  # Grader expects "reference"
+            "reference": "reference_answer"  # Grader expects "reference", your data has "reference_answer"
         }
     }
 }
 ```
 
-!!! tip "Field Mapping Format"
-    The mapper dictionary format is: `{"grader_field": "dataset_field"}` where:
-    
-    - `grader_field` is what the grader expects
-    - `dataset_field` is what your data contains
-
-### Complex Transformations
-
-For more complex data structures, custom mapper functions provide the flexibility needed to handle nested data, computed fields, or other transformations that simple field mapping cannot address.
-
-!!! note "When to Use Custom Mappers"
-    Custom mappers are functions that take a sample from your dataset and return a dictionary with the fields expected by the grader. Use them for:
-    
-    - Extracting nested fields
-    - Combining multiple fields
-    - Applying transformations before grading
-
-**Example: Handling nested data structures**
+For more complex data structures, custom mapper functions provide flexibility:
 
 ```python
-# Nested data structure
+# Nested data structure - more complex than what graders expect
 dataset = [
     {
         "input": {"question": "What is the capital of France?"},
@@ -183,69 +138,22 @@ grader_configs = {
 }
 ```
 
----
+### Aggregation Configuration
+After running multiple graders, you might want to combine their results into a single score. The [aggregator submodule](../../rm_gallery/core/runner/aggregator/) provides components that take multiple grader results and combine them into a unified result:
 
-## Optimizing Performance
+- **WeightedSumAggregator**: Combining results using weighted averages. In our example, we assign 60% weight to helpfulness and 40% to relevance: `WeightedSumAggregator(weights={"helpfulness": 0.6, "relevance": 0.4})`
+- **MaxAggregator**: Taking the maximum score among all graders
+- **MinAggregator**: Taking the minimum score among all graders
 
-When dealing with large datasets or resource-intensive graders, performance becomes critical. The GradingRunner provides several mechanisms to optimize performance, primarily through concurrency control and efficient resource utilization.
+These aggregators allow you to create composite scores that reflect multiple evaluation dimensions, making it easier to compare overall performance across different models or configurations.
 
-!!! warning "Performance Considerations"
-    Performance optimization is especially important when working with large language model-based graders, which can be slow and resource-intensive. The right balance of concurrency can dramatically reduce evaluation time without overwhelming your system resources.
-
-### Controlling Concurrency
-
-Concurrency control allows you to specify how many evaluations should run simultaneously. This is important because different types of graders have different resource requirements.
-
-**Factors affecting optimal concurrency:**
-
-- Hardware resources (CPU, GPU, memory)
-- Types of graders (lightweight vs. LLM-based)
-- External rate limits (API quotas)
-
-**Adjust concurrency based on your grader types:**
-
-=== "Resource-Intensive Graders"
-
-    ```python
-    # For LLM-based graders
-    # Lower concurrency to avoid overwhelming GPU or API limits
-    runner = GradingRunner(
-        grader_configs=grader_configs,
-        max_concurrency=5  # Process 5 samples at a time
-    )
-    ```
-
-=== "Lightweight Graders"
-
-    ```python
-    # For fast, function-based graders
-    # Higher concurrency for faster processing
-    runner = GradingRunner(
-        grader_configs=grader_configs,
-        max_concurrency=32  # Process 32 samples at a time
-    )
-    ```
-
-!!! tip "Finding the Sweet Spot"
-    Experimentation is often needed to find the optimal concurrency level for your specific use case. Start conservative and increase gradually while monitoring resource usage.
-
-### Combining Results with Aggregators
-
-Often you'll want to combine multiple grader results into unified scores. Aggregators provide a mechanism to synthesize results from multiple graders into composite scores, weighted averages, or other combinations that give you a holistic view of your model's performance.
-
-!!! info "When to Use Aggregators"
-    Different aggregation strategies serve different purposes:
-    
-    - **Weighted Sum**: Compute an overall quality score from multiple graders
-    - **Average**: Simple mean of all grader scores
-    - **Custom**: Implement your own aggregation logic
-
-**Example: Weighted sum aggregation**
+Often you'll want to combine multiple grader results into unified scores:
 
 ```python
-from rm_gallery.core.runner.aggregator.weighted_sum import WeightedSumAggregator
+from rm_gallery.core.runner.aggregator.weighted_sum_aggregator import WeightedSumAggregator
 
 # Combine multiple perspectives into a single quality score
+# Like calculating a final grade based on different subject scores
 aggregator = WeightedSumAggregator(
     name="overall_score",
     weights={
@@ -260,13 +168,37 @@ runner = GradingRunner(
 )
 ```
 
----
+### Concurrency Control
+The GradingRunner is designed for high-performance evaluation by managing execution concurrency:
+
+- **Multi-Grader concurrency**: Multiple different graders execute concurrently for each data item, improving evaluation speed
+- **Data concurrency**: Multiple data items are processed concurrently across all graders
+- **Concurrency limits**: The `max_concurrency` parameter controls the maximum number of concurrent operations to prevent system overload. In our example, `max_concurrency=5` limits the system to processing 5 items simultaneously.
+
+Concurrency control enables efficient processing of large datasets while maintaining system stability.
+
+Adjust concurrency based on your resources and constraints:
+
+```python
+# For resource-intensive graders (e.g., LLM-based)
+# Lower concurrency to avoid overwhelming resources like GPU or API limits
+runner = GradingRunner(
+    grader_configs=grader_configs,
+    max_concurrency=5  # Process 5 samples at a time
+)
+
+# For fast, lightweight graders
+# Higher concurrency for faster processing
+runner = GradingRunner(
+    grader_configs=grader_configs,
+    max_concurrency=32  # Process 32 samples at a time
+)
+```
+
+Performance optimization is especially important when working with large language model-based graders, which can be slow and resource-intensive. The right balance of concurrency can dramatically reduce evaluation time without overwhelming your system resources.
+
+Finding the optimal concurrency level depends on your hardware resources, the types of graders you're using, and any external rate limits (like API quotas). Experimentation is often needed to find the sweet spot for your specific use case.
 
 ## Next Steps
-
-Once you've mastered running grading tasks, you'll want to:
-
-- [Generate evaluation reports](evaluation_reports.md) to validate your graders
-- [Refine data quality](../applications/data_refinement.md) using your evaluation insights
-- [Train reward models](../building_graders/training/bradley_terry.md) with your graded data
+Once you've mastered running grading tasks, you'll want to [generate validation reports](../validating_graders/generate_validation_reports.md) to assess the quality of your evaluations or [refine data quality](../applications/refine_data_quality.md) using your evaluation insights.
 
