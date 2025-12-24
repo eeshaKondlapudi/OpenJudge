@@ -598,14 +598,7 @@ class TrajectoryComprehensiveGrader(LLMGrader):
             logger.warning("Empty user query or trajectory, returning zero score")
             return GraderError(
                 name=self.name,
-                error="Empty user query or trajectory",
-                metadata={
-                    "evaluation_type": "trajectory_comprehensive",
-                    "error": "Empty input",
-                    "step_evaluations": [],
-                    "is_resolved": False,
-                    "resolution_threshold": self.resolution_threshold,
-                },
+                error="Empty user query or trajectory"
             )
 
         try:
@@ -637,16 +630,5 @@ class TrajectoryComprehensiveGrader(LLMGrader):
             logger.error(f"Error evaluating {self.name}: {e}")
             return GraderError(
                 name=self.name,
-                error=f"Evaluation error: {str(e)}",
-                metadata={
-                    "evaluation_type": "trajectory_comprehensive",
-                    "error": str(e),
-                    "step_evaluations": [],
-                    "is_resolved": False,
-                    "resolution_threshold": self.resolution_threshold,
-                    "avg_contribution": 0.0,
-                    "avg_relevance": 0.0,
-                    "avg_accuracy": 0.0,
-                    "avg_efficiency": 0.0,
-                },
+                error=f"Evaluation error: {str(e)}"
             )

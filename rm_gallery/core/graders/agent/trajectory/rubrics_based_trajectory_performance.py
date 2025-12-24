@@ -5,6 +5,7 @@ This module provides a grader that evaluates agent trajectory performance based 
 customizable evaluation rubrics (criteria with check points and weights).
 """
 
+import json
 import textwrap
 from typing import Any, Callable, Dict, List, Optional, Union
 
@@ -326,7 +327,6 @@ class RubricsBasedTrajectoryPerformance(LLMGrader):
                     score = 0.0
 
                 dimension_scores[eval_item.dimension] = score
-                logger.debug(f"维度 '{eval_item.dimension}' 自动计算分数: {passed_count}/{total_count} = {score:.4f}")
 
             # Calculate average score across all dimensions (equal weight)
             if dimension_scores:
@@ -337,10 +337,6 @@ class RubricsBasedTrajectoryPerformance(LLMGrader):
 
             # Ensure score is in [0, 1] range
             normalized_score = max(0.0, min(1.0, normalized_score))
-
-            logger.debug(
-                f"平均总分计算: {sum(dimension_scores.values()):.4f} / {len(dimension_scores)} = {normalized_score:.4f}"
-            )
 
             # Generate reason string
             if language == LanguageEnum.ZH:
@@ -552,18 +548,24 @@ class RubricsBasedTrajectoryPerformance(LLMGrader):
         # Validate rubrics
         if not rubrics or not isinstance(rubrics, list):
             logger.warning("Invalid or empty rubrics, must be a list")
-            return GraderError(name=self.name, error="Invalid or empty rubrics, must be a list")
+            return GraderError(
+                name=self.name,
+                error=f"Invalid or empty rubrics, must be a list: {rubrics}"
+            )
 
         # Extract information from messages
         query, tool_calls_str, final_response = self._extract_info_from_messages(messages)
 
         if not query or not tool_calls_str or not final_response:
             logger.warning("Empty query or tool_calls or final response, returning error")
-            return GraderError(name=self.name, error="Empty query or tool_calls or final_response")
+            return GraderError(
+                name=self.name,
+                error="Empty query or tool_calls or final_response"
+            )
 
         try:
-            # Convert rubrics to string for prompt
-            rubrics_str = str(rubrics)
+            # Convert rubrics to JSON string for prompt
+            rubrics_str = json.dumps(rubrics)
 
             # Call parent evaluation with rubrics string
             result = await super().aevaluate(

@@ -1042,7 +1042,7 @@ class FinancialTrajectoryFaithfulGrader(LLMGrader):
         Create a callback function to process tuple evaluations into final score and reason.
 
         This callback:
-        1. Extracts tuples from ChatResponse.metadata (which contains the model_dump of FinancialFaithfulEvaluationOutput)
+        1. Extracts tuples from ChatResponse.parsed (which contains the model_dump of FinancialFaithfulEvaluationOutput)
         2. Checks if all tuples have "error_type" is None or empty string
         3. Calculates score as 1 - (error_tuples / all_tuples)
         4. Generates reason string by formatting tuples and errors
@@ -1051,14 +1051,14 @@ class FinancialTrajectoryFaithfulGrader(LLMGrader):
             language: Language for generating the reason string
 
         Returns:
-            Callable that processes ChatResponse into metadata dict with score and reason
+            Callable that processes ChatResponse into parsed dict with score and reason
         """
 
         def callback(response: Any) -> Dict[str, Any]:
-            # Extract tuples from ChatResponse.metadata
+            # Extract tuples from ChatResponse.parsed
             tuples_raw = []
-            if response.metadata is not None:
-                tuples_raw = response.metadata.get("tuples", response.metadata)
+            if response.parsed is not None:
+                tuples_raw = response.parsed.get("tuples", response.parsed)
 
             tuples: List[TupleEvaluation] = [TupleEvaluation(**t) for t in tuples_raw]
 
@@ -1298,7 +1298,7 @@ class FinancialTrajectoryFaithfulGrader(LLMGrader):
             logger.warning("Empty user query or search result or AI answer, returning error")
             return GraderError(
                 name=self.name,
-                error="Empty user query or search result or AI answer",
+                error="Empty user query or search result or AI answer"
             )
 
         try:
