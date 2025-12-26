@@ -108,7 +108,7 @@ We're actively building seamless connectors for mainstream observability platfor
 ----
 ## News
 
-- **2025-12-26** - Released OpenJudge v0.2.0 on [PyPI](https://pypi.org/project/py-openjudge/) - **Major Update!** This release expands our core capabilities by adding robust support for diverse evaluation scenarios on top of reward construction. By unifying reward and evaluation signals, OpenJudge v0.2.0 provides a more holistic approach to optimizing application performance and excellence. → [For v0.1.x Users](#-for-v01x-users)
+- **2025-12-26** - Released OpenJudge v0.2.0 on [PyPI](https://pypi.org/project/py-openjudge/) - **Major Update!** This release expands our core capabilities by adding robust support for diverse evaluation scenarios on top of reward construction. By unifying reward and evaluation signals, OpenJudge v0.2.0 provides a more holistic approach to optimizing application performance and excellence. → [migration-guide](#migration-guide-v01x--v020)
 
 - **2025-10-20** - [Auto-Rubric: Learning to Extract Generalizable Criteria for Reward Modeling](https://arxiv.org/abs/2510.17314) - We released a new paper on learning generalizable reward criteria for robust modeling.
 - **2025-10-17** - [Taming the Judge: Deconflicting AI Feedback for Stable Reinforcement Learning](https://arxiv.org/abs/2510.15514) - We introduced techniques to align judge feedback and improve RL stability.
@@ -188,9 +188,25 @@ We love your input! We want to make contributing to OpenJudge as easy and transp
 
 ---
 
-## 📦 For v0.1.x Users
 
-> Package renamed from `rm-gallery` → `py-openjudge`. Legacy version still available via `pip install rm-gallery`. Source code preserved in [`v0.1.6` branch](https://github.com/modelscope/OpenJudge/tree/v0.1.6).
+
+### Migration Guide (v0.1.x → v0.2.0)
+> OpenJudge was previously distributed as the legacy package `rm-gallery` (v0.1.x). Starting from v0.2.0, it is published as `py-openjudge` and the Python import namespace is `openjudge`.
+
+**OpenJudge v0.2.0 is NOT backward compatible with v0.1.x.**  
+If you are currently using v0.1.x, choose one of the following paths:
+
+- **Stay on v0.1.x (legacy)**: keep using the old package
+
+```bash
+pip install rm-gallery
+```
+
+We preserved the source code of **v0.1.7 (the latest v0.1.x release)** in the [`v0.1.7` branch](https://github.com/modelscope/OpenJudge/tree/v0.1.7).
+
+- **Migrate to v0.2.0 (recommended)**: follow the **[Installation](#-installation)** section above, then walk through **[Quickstart](#-quickstart)** (or the full [Quickstart Guide](./docs/get_started/quickstart.md)) to update your imports / usage.
+
+If you run into migration issues, please [open an issue](https://github.com/modelscope/OpenJudge/issues) with your minimal repro and current version.
 
 ---
 

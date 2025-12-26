@@ -2,7 +2,7 @@
 
 OpenJudge is an advanced evaluation system designed for AI model assessment. This guide explains the fundamental components of the system: Graders, Runners, and Analyzers, and how they work together to provide comprehensive model evaluation. You'll learn what Graders are, why they matter, how Graders work to evaluate AI models, how Runners use Graders to orchestrate complex evaluation tasks, and how to analyze Grader results to assess evaluation quality.
 
-## What is A Grader
+## What Is a Grader
 
 In the era of advanced AI systems, especially large language models (LLMs), having robust evaluation and reward mechanisms is critical for both measuring performance and guiding improvements.
 
