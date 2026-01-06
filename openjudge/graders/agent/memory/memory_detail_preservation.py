@@ -171,15 +171,15 @@ class MemoryDetailPreservationGrader(LLMGrader):
         template: Optional[PromptTemplate] = DEFAULT_MEMORY_DETAIL_PRESERVATION_TEMPLATE,
         language: LanguageEnum = LanguageEnum.EN,
     ):
+        template_arg = template if template else DEFAULT_MEMORY_DETAIL_PRESERVATION_TEMPLATE
         super().__init__(
             name="memory_detail_preservation",
             mode=GraderMode.POINTWISE,
             description="Evaluate memory detail preservation",
             model=model,
-            template=template,
+            template=template_arg,
             language=language,
         )
-        self.template = template if template is not None else DEFAULT_MEMORY_DETAIL_PRESERVATION_TEMPLATE
 
     def _format_history(self, history: Optional[list] = None) -> str:
         """Format history steps for evaluation.

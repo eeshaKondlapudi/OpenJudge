@@ -171,15 +171,15 @@ class ReflectionAccuracyGrader(LLMGrader):
         template: Optional[PromptTemplate] = DEFAULT_REFLECTION_ACCURACY_TEMPLATE,
         language: LanguageEnum = LanguageEnum.EN,
     ):
+        template_arg = template if template else DEFAULT_REFLECTION_ACCURACY_TEMPLATE
         super().__init__(
             name="reflection_accuracy",
             mode=GraderMode.POINTWISE,
             description="Evaluate reflection accuracy",
             model=model,
-            template=template,
+            template=template_arg,
             language=language,
         )
-        self.template = template if template is not None else DEFAULT_REFLECTION_ACCURACY_TEMPLATE
 
     def _format_history(self, history: Optional[list] = None) -> str:
         """Format history steps for evaluation.

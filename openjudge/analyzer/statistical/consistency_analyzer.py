@@ -108,8 +108,8 @@ class ConsistencyAnalyzer(BaseAnalyzer):
 
         # If the parameters were passed positionally as before, dataset will be first_run_results
         # and grader_results will be second_run_results
-        if first_run_results is None and second_run_results is None:
-            if dataset is not None and grader_results is not None:
+        if not first_run_results and not second_run_results:
+            if dataset and grader_results:
                 first_run_results = dataset
                 second_run_results = grader_results
             else:

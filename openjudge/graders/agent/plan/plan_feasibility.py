@@ -174,15 +174,15 @@ class PlanFeasibilityGrader(LLMGrader):
         template: Optional[PromptTemplate] = DEFAULT_PLAN_FEASIBILITY_TEMPLATE,
         language: LanguageEnum = LanguageEnum.EN,
     ):
+        template_arg = template if template else DEFAULT_PLAN_FEASIBILITY_TEMPLATE
         super().__init__(
             name="plan_feasibility",
             mode=GraderMode.POINTWISE,
             description="Evaluate plan feasibility",
             model=model,
-            template=template,
+            template=template_arg,
             language=language,
         )
-        self.template = template if template is not None else DEFAULT_PLAN_FEASIBILITY_TEMPLATE
 
     def _format_history(self, history: Optional[list] = None) -> str:
         """Format history steps for evaluation.

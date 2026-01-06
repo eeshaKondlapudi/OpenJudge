@@ -204,15 +204,15 @@ class ToolCallAccuracyGrader(LLMGrader):
             template: Evaluation template. Defaults to DEFAULT_TOOL_CALL_ACCURACY_TEMPLATE.
             language: Language for evaluation prompts (default: LanguageEnum.EN).
         """
+        template_arg = template if template else DEFAULT_TOOL_CALL_ACCURACY_TEMPLATE
         super().__init__(
             name="tool_call_accuracy",
             mode=GraderMode.POINTWISE,
             description="Evaluates the accuracy of tool calls made by an agent",
             model=model,
-            template=template,
+            template=template_arg,
             language=language,
         )
-        self.template = template if template is not None else DEFAULT_TOOL_CALL_ACCURACY_TEMPLATE
 
     def _parse_tools_from_response(
         self,

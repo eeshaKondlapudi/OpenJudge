@@ -184,15 +184,15 @@ class ToolParameterCheckGrader(LLMGrader):
         template: Optional[PromptTemplate] = DEFAULT_TOOL_PARAMETER_CHECK_TEMPLATE,
         language: LanguageEnum = LanguageEnum.EN,
     ):
+        template_arg = template if template else DEFAULT_TOOL_PARAMETER_CHECK_TEMPLATE
         super().__init__(
             name="tool_parameter_check",
             mode=GraderMode.POINTWISE,
             description="Evaluate tool parameter extraction correctness",
             model=model,
-            template=template,
+            template=template_arg,
             language=language,
         )
-        self.template = template if template is not None else DEFAULT_TOOL_PARAMETER_CHECK_TEMPLATE
 
     async def aevaluate(
         self,
